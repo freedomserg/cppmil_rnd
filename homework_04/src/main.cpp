@@ -121,6 +121,7 @@ int main(int argc, char** argv) {
     }
 
     delete[] samples; // clean up allocated memory
+    samples = nullptr;
 
     return 0;
 }
