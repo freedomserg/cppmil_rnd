@@ -4,6 +4,11 @@
 #include <string>
 #include <cmath>
 
+// given parameters
+constexpr int ticksPerRevolution = 1024;
+constexpr float wheelRadiusM = 0.3f;
+constexpr float wheelbaseM = 1.0f;
+
 struct OdotemtrySample {
     long timestampMs;
     int flTicks;
@@ -56,12 +61,6 @@ int main(int argc, char** argv) {
     }
 
     const char* filename = argv[1];
-
-    // given parameters
-    const int ticksPerRevolution = 1024;
-    const float wheelRadiusM = 0.3f;
-    const float wheelbaseM = 1.0f;
-
     // wheel_circumference = 2π × wheel_radius
     const float wheelCircumference = 2.0f * M_PI * wheelRadiusM;
 
