@@ -1,7 +1,7 @@
 #pragma once
 
 // Fixed-size storage keeps the starter close to the topics from block 1.
-const int MAX_TELEMETRY_FRAMES = 128;
+constexpr int MAX_TELEMETRY_FRAMES = 128;
 
 // One telemetry sample from the input log.
 struct Frame {

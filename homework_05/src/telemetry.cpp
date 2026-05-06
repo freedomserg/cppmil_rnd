@@ -11,8 +11,8 @@
 // The defects are related to malformed input shape, invalid numeric values,
 // unsafe time deltas, and empty logs. Exact locations are not marked on purpose.
 
-const int EXPECTED_FIELD_COUNT = 7;
-const int MAX_LINE_LENGTH = 256;
+constexpr int EXPECTED_FIELD_COUNT = 7;
+constexpr int MAX_LINE_LENGTH = 256;
 
 int split_line(char line[], char* fields[], int max_fields) {
     int count = 0;
