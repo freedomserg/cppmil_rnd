@@ -1,5 +1,76 @@
 #include "ballistics.hpp"
 #include <iostream>
+#include <fstream>
+#include <string>
+
+void readInputParameters(const char* inputPath, int ammoNameSize, float& outXd, float& outYd, float& outZd, float& outTargetX, float& outTargetY, float& outAttackSpeed, float& outAccelerationPath, char* outAmmoName) {
+    std::ifstream inputFile(inputPath);
+    if (!inputFile) {
+        std::cerr << "Error opening file: " << inputPath << std::endl;
+        return;
+    }
+
+    std::string name;
+    if (inputFile >> outXd >> outYd >> outZd >> outTargetX >> outTargetY >> outAttackSpeed >> outAccelerationPath >> name) {
+        std::strncpy(outAmmoName, name.c_str(), ammoNameSize - 1);
+        outAmmoName[ammoNameSize - 1] = '\0';
+        std::cout << "Input drone coordinates: " << outXd << ", " << outYd << ", " << outZd << std::endl;
+        std::cout << "Input target coordinates: " << outTargetX << ", " << outTargetY << std::endl;
+        std::cout << "Input attack speed: " << outAttackSpeed << std::endl;
+        std::cout << "Input acceleration path: " << outAccelerationPath << std::endl;
+        std::cout << "Input ammo name: " << outAmmoName << std::endl;
+    } else {
+        std::cerr << "Error reading data from file: " << inputPath << std::endl;
+    }
+
+    if (inputFile.is_open()) {
+        inputFile.close();     
+    }
+}
+
+void validateInputParameters(const float& attackSpeed, const float& accelerationPath, const char* ammoName, float& outAmmoMassKg, float& outAmmoDrag, float& outAmmoLift, bool& outValidAttackSpeed, bool& outValidAccelerationPath, bool& outValidAmmoName) {
+    if (attackSpeed <= 0) {
+        std::cerr << "Error: attack speed must be greater than zero, attackSpeed=" << attackSpeed << std::endl;
+        outValidAttackSpeed = false;
+        return;
+    } else {
+        outValidAttackSpeed = true;
+    }
+    if (accelerationPath <= 0) {
+        std::cerr << "Error: acceleration path must be greater than zero, accelerationPath=" << accelerationPath << std::endl;
+        outValidAccelerationPath = false;
+        return;
+    } else {
+        outValidAccelerationPath = true;
+    }
+
+    if (std::strcmp(ammoName, "VOG-17") == 0) {
+        outAmmoMassKg = 0.35f;
+        outAmmoDrag = 0.07f;
+        outAmmoLift = 0.0f;
+    } else if (std::strcmp(ammoName, "M67") == 0) {
+        outAmmoMassKg = 0.6f;
+        outAmmoDrag = 0.10f;
+        outAmmoLift = 0.0f;
+    } else if (std::strcmp(ammoName, "RKG-3") == 0) {
+        outAmmoMassKg = 1.2f;
+        outAmmoDrag = 0.10f;
+        outAmmoLift = 0.0f;
+    } else if (std::strcmp(ammoName, "GLIDING-VOG") == 0) {
+        outAmmoMassKg = 0.45f;
+        outAmmoDrag = 0.10f;
+        outAmmoLift = 1.0f;
+    } else if (std::strcmp(ammoName, "GLIDING-RKG") == 0) {
+        outAmmoMassKg = 1.4f;
+        outAmmoDrag = 0.10f;
+        outAmmoLift = 1.0f;
+    } else {
+        std::cerr << "Error: unknown ammo type: " << ammoName << std::endl;
+        outValidAmmoName = false;
+        return;
+    }
+    outValidAmmoName = true;
+}
 
 float calculateAmmoFlightTime(float ammoMass, float ammoDrag, float ammoLift, float droneAttackSpeed, float droneHeight) {
 
@@ -111,4 +182,33 @@ float calculateAmmoHorizontalDistance(float ammoMass, float ammoDrag, float ammo
     float quinticPart = quinticPartNumerator / quinticPartDenominator;
 
     return droneAttackSpeed * ammoFlightTime + quadraticPart + cubicPart + quatricPart + quinticPart;
+}
+
+bool prepareDropApproach(float& xd, float& yd, const float& targetX, const float& targetY,
+                         const float& ammoHorizontalDistance, const float& accelerationPath,
+                         float& outDistanceToTarget, bool& outWithManeuver) {
+    outDistanceToTarget = distance2D(xd, yd, targetX, targetY);
+    std::cout << "Calculated distance to target: " << outDistanceToTarget << " meters" << std::endl;
+
+    if (outDistanceToTarget < ACCEPTABLE_DEVIATION) {
+        std::cerr << "Error: calculated distance to target cannot be zero or too close to zero. calculatedDistance=" << outDistanceToTarget << std::endl;
+        return false;
+    }
+
+    outWithManeuver = (ammoHorizontalDistance + accelerationPath > outDistanceToTarget);
+    if (outWithManeuver) {
+        xd = targetX - (targetX - xd) * (ammoHorizontalDistance + accelerationPath) / outDistanceToTarget;
+        yd = targetY - (targetY - yd) * (ammoHorizontalDistance + accelerationPath) / outDistanceToTarget;
+        outDistanceToTarget = distance2D(xd, yd, targetX, targetY);
+        std::cout << "Drone needs to maneuver to new coordinates before dropping ammo: xd = " << xd << ", yd = " << yd << std::endl;
+        std::cout << "Recalculated distance to target after maneuver: " << outDistanceToTarget << " meters" << std::endl;
+    }
+
+    return true;
+}
+
+void calculateDropPointCoordinates(const float& distanceToTarget, const float& ammoHorizontalDistance, const float& xd, const float& yd, const float& targetX, const float& targetY, float& outFireX, float& outFireY) {
+    float ratio = (distanceToTarget - ammoHorizontalDistance) / distanceToTarget;
+    outFireX = xd + (targetX - xd) * ratio;
+    outFireY = yd + (targetY - yd) * ratio;
 }
