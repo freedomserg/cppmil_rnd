@@ -32,6 +32,22 @@
         "panel": "dedicated",
         "clear": true
       }
+    },
+    {
+      // Запуск тестів: виконує всі тести, визначені в CMakeLists.txt.
+      "label": "CMake: run tests",
+      "type": "shell",
+      "command": "ctest --test-dir build/debug --output-on-failure",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
     }
   ]
 }
