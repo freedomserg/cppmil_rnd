@@ -1,0 +1,53 @@
+# GitHub Actions workflow: clang-tidy на C++ файлах, змінених у PR.
+#
+# Крок збірки потрібен перед clang-tidy, бо він генерує
+# build/debug/compile_commands.json — саме звідти clang-tidy бере
+# точні прапори компіляції для кожного файлу.
+
+name: Quality
+
+# Тригер:
+# - pull_request: запускаємо при відкритті PR і кожному update гілки.
+on:
+  pull_request:
+
+jobs:
+  clang-tidy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # fetch-depth: 0 завантажує повну історію, щоб
+      # `git diff origin/<base>...HEAD` працював всередині контейнера.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run clang-tidy on changed C++ files
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          # BASE_REF — назва цільової гілки PR (наприклад, "main").
+          # Передається як змінна середовища, щоб runCmd міг її використати.
+          env: |
+            BASE_REF=${{ github.base_ref }}
+          runCmd: |
+            cmake --preset debug
+            cmake --build --preset debug
+
+            # Збираємо .cpp/.hpp файли, що відрізняються від базової гілки.
+            # `|| true` запобігає падінню grep, коли збігів немає
+            # (grep повертає 1 при порожньому результаті, що перервало б скрипт).
+            CHANGED=$(git diff --name-only "origin/${BASE_REF:-main}...HEAD" \
+              | grep -E '\.(cpp|hpp)$' || true)
+
+            if [ -z "$CHANGED" ]; then
+              echo "No C++ files changed — skipping clang-tidy."
+              exit 0
+            fi
+
+            echo "Running clang-tidy on:"
+            echo "$CHANGED"
+            # Word-split навмисний: кожне ім'я файлу — окремий аргумент.
+            # shellcheck disable=SC2086
+            clang-tidy -p build/debug $CHANGED
