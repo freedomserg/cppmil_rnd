@@ -25,8 +25,9 @@ auto read_input_parameters(const char* input_path,
   std::string name;
   if (input_file >> out_xd >> out_yd >> out_zd >> out_target_x >> out_target_y >> out_attack_speed >> out_acceleration_path >> name) {
     std::strncpy(out_ammo_name, name.c_str(), static_cast<std::size_t>(ammo_name_size - 1));
-    out_ammo_name[ammo_name_size - 1] =
-      '\0';  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- null-terminate the C-string buffer
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- null-terminate the C-string buffer
+    out_ammo_name[ammo_name_size - 1] = '\0';
+    // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     std::cout << "Input drone coordinates: " << out_xd << ", " << out_yd << ", " << out_zd << '\n';
     std::cout << "Input target coordinates: " << out_target_x << ", " << out_target_y << '\n';
     std::cout << "Input attack speed: " << out_attack_speed << '\n';
