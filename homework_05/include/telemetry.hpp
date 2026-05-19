@@ -1,7 +1,7 @@
 #pragma once
 
 // Fixed-size storage keeps the starter close to the topics from block 1.
-const int MAX_TELEMETRY_FRAMES = 128;
+constexpr int MAX_TELEMETRY_FRAMES = 128;
 
 // One telemetry sample from the input log.
 struct Frame {
@@ -27,6 +27,9 @@ struct Summary {
 
 // Reads frames from a whitespace-separated telemetry log.
 int read_frames(const char* path, Frame frames[], int max_frames);
+
+// Validates parsed frames and throws if any of them is invalid.
+void validate_frames(const Frame frames[], int frame_count);
 
 // Calculates summary values for already parsed frames.
 Summary summarize(const Frame frames[], int frame_count);

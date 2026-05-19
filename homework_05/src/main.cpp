@@ -1,5 +1,6 @@
 #include "telemetry.hpp"
 
+#include <exception>
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -10,10 +11,16 @@ int main(int argc, char** argv) {
     }
 
     Frame frames[MAX_TELEMETRY_FRAMES];
-    const int frame_count = read_frames(argv[1], frames, MAX_TELEMETRY_FRAMES);
-
-    const Summary summary = summarize(frames, frame_count);
-    print_summary(summary);
+    try {
+        const int frame_count = read_frames(argv[1], frames, MAX_TELEMETRY_FRAMES);
+        validate_frames(frames, frame_count);
+        const Summary summary = summarize(frames, frame_count);
+        print_summary(summary);
+    } catch (const std::exception& ex) {
+        std::cerr << "error: " << ex.what() << std::endl;
+        return 1;
+    }
+    
 
     return 0;
 }

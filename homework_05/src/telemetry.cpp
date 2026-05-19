@@ -3,14 +3,16 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <stdexcept>
 
 // Debugging exercise notes:
 // this file intentionally contains four runtime defects.
 // The defects are related to malformed input shape, invalid numeric values,
 // unsafe time deltas, and empty logs. Exact locations are not marked on purpose.
 
-const int EXPECTED_FIELD_COUNT = 7;
-const int MAX_LINE_LENGTH = 256;
+constexpr int EXPECTED_FIELD_COUNT = 7;
+constexpr int MAX_LINE_LENGTH = 256;
 
 int split_line(char line[], char* fields[], int max_fields) {
     int count = 0;
@@ -38,45 +40,48 @@ int split_line(char line[], char* fields[], int max_fields) {
     return count;
 }
 
-long parse_long(const char* text) {
+long parse_long(const char* text, int line_number) {
     char* end = nullptr;
     const long value = std::strtol(text, &end, 10);
 
     if (end == text) {
-        std::abort();
+        throw std::invalid_argument("failed to parse long value at line " + std::to_string(line_number+1) + ": " + std::string(text));
     }
 
     return value;
 }
 
-int parse_int(const char* text) {
-    return static_cast<int>(parse_long(text));
+int parse_int(const char* text, int line_number) {
+    return static_cast<int>(parse_long(text, line_number));
 }
 
-double parse_double(const char* text) {
+double parse_double(const char* text, int line_number) {
     char* end = nullptr;
     const double value = std::strtod(text, &end);
 
     if (end == text) {
-        std::abort();
+        throw std::invalid_argument("failed to parse double value at line " + std::to_string(line_number+1) + ": " + std::string(text));
     }
 
     return value;
 }
 
-Frame parse_frame(char line[]) {
+Frame parse_frame(char line[], int line_number) {
     char* fields[EXPECTED_FIELD_COUNT] = {};
     const int field_count = split_line(line, fields, EXPECTED_FIELD_COUNT);
-    (void)field_count;
+
+    if (field_count != EXPECTED_FIELD_COUNT) {
+        throw std::invalid_argument("invalid frame at line " + std::to_string(line_number+1) + ": expected " + std::to_string(EXPECTED_FIELD_COUNT) + " fields, got " + std::to_string(field_count));
+    }
 
     Frame frame{};
-    frame.timestamp_ms = parse_long(fields[0]);
-    frame.seq = parse_int(fields[1]);
-    frame.voltage_v = parse_double(fields[2]);
-    frame.current_a = parse_double(fields[3]);
-    frame.temperature_c = parse_double(fields[4]);
-    frame.gps_fix = parse_int(fields[5]);
-    frame.satellites = parse_int(fields[6]);
+    frame.timestamp_ms = parse_long(fields[0], line_number);
+    frame.seq = parse_int(fields[1], line_number);
+    frame.voltage_v = parse_double(fields[2], line_number);
+    frame.current_a = parse_double(fields[3], line_number);
+    frame.temperature_c = parse_double(fields[4], line_number);
+    frame.gps_fix = parse_int(fields[5], line_number);
+    frame.satellites = parse_int(fields[6], line_number);
     return frame;
 }
 
@@ -102,12 +107,52 @@ int read_frames(const char* path, Frame frames[], int max_frames) {
         }
 
         if (frame_count < max_frames) {
-            frames[frame_count] = parse_frame(line);
+            frames[frame_count] = parse_frame(line, frame_count);
             ++frame_count;
         }
     }
 
     return frame_count;
+}
+
+void validate_frames(const Frame frames[], int frame_count) {
+    if (frame_count == 0) {
+        throw std::invalid_argument("empty telemetry log");
+    }
+
+    long prev_timestamp_ms = -1;
+    int prev_seq = 0;
+    for (int i = 0; i < frame_count; ++i) {
+        if (frames[i].timestamp_ms <= prev_timestamp_ms) {
+            throw std::invalid_argument("non-increasing timestamp at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].timestamp_ms) + " <= " + std::to_string(prev_timestamp_ms));
+        }
+        prev_timestamp_ms = frames[i].timestamp_ms;
+
+        if (frames[i].seq != prev_seq + 1) {
+            throw std::invalid_argument("non-sequential frame number at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].seq) + " != " + std::to_string(prev_seq + 1));
+        }
+        prev_seq = frames[i].seq;
+
+        if (frames[i].voltage_v <= 0.0) {
+            throw std::invalid_argument("non-positive voltage at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].voltage_v));
+        }
+
+        if (frames[i].current_a < 0.0) {
+            throw std::invalid_argument("negative current at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].current_a));
+        }
+
+        if (frames[i].temperature_c < -40.0 || frames[i].temperature_c > 120.0) {
+            throw std::invalid_argument("invalid temperature at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].temperature_c));
+        }
+
+        if (frames[i].gps_fix != 0 && frames[i].gps_fix != 1) {
+            throw std::invalid_argument("invalid GPS fix at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].gps_fix));
+        }
+
+        if (frames[i].satellites < 0) {
+            throw std::invalid_argument("negative satellite count at line " + std::to_string(i+1) + ": " + std::to_string(frames[i].satellites));
+        }        
+    }
 }
 
 Summary summarize(const Frame frames[], int frame_count) {
