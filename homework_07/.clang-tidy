@@ -1,0 +1,18 @@
+# Локальний override для homework_07. Не замінює кореневий /.clang-tidy —
+# InheritParentConfig: true успадковує його політику і лише вимикає перевірки,
+# фікс яких — у скоупі наступного ДЗ (модернізація сирих вказівників/масивів на
+# контейнери та smart-pointers). Magic numbers у формулах лишаємо як є.
+InheritParentConfig: true
+Checks: >
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-avoid-c-arrays,
+  -modernize-avoid-c-arrays,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-prefer-member-initializer,
+  -cppcoreguidelines-narrowing-conversions,
+  -clang-analyzer-deadcode.DeadStores,

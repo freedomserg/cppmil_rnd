@@ -36,10 +36,13 @@ jobs:
             cmake --build --preset debug
 
             # Збираємо .cpp/.hpp файли, що відрізняються від базової гілки.
+            # Вендорені single-header бібліотеки (json.hpp) виключаємо — це
+            # сторонній код, лінтити його не треба, інакше джоба тоне у warnings.
             # `|| true` запобігає падінню grep, коли збігів немає
             # (grep повертає 1 при порожньому результаті, що перервало б скрипт).
             CHANGED=$(git diff --name-only "origin/${BASE_REF:-main}...HEAD" \
-              | grep -E '\.(cpp|hpp)$' || true)
+              | grep -E '\.(cpp|hpp)$' \
+              | grep -vE '(^|/)json\.hpp$' || true)
 
             if [ -z "$CHANGED" ]; then
               echo "No C++ files changed — skipping clang-tidy."
