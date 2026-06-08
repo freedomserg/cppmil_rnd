@@ -12,6 +12,15 @@
     }
   },
 
+  // Порожній DEBUGINFOD_URLS запобігає спробам GDB завантажувати debug-символи
+  // для системних бібліотек через мережу. Ubuntu 24.04 встановлює цю змінну на
+  // https://debuginfod.ubuntu.com за замовчуванням; GDB звертається до неї
+  // навіть якщо set debuginfod enabled off вказано в ~/.gdbinit, що призводить
+  // до зависання на таймаутах при кожному старті debug-сесії.
+  "remoteEnv": {
+    "DEBUGINFOD_URLS": ""
+  },
+
   // VS Code відкриває контейнер від імені того самого користувача, що й host.
   // Це зменшує проблеми з ownership файлів у bind mount.
   "remoteUser": "${localEnv:USER}",
@@ -34,6 +43,13 @@
     "bash",
     ".devcontainer/scripts/initialize"
   ],
+
+  // Створює ~/.gdbinit одразу після першого старту контейнера.
+  // set debuginfod enabled off — вимикає спроби GDB 15 завантажувати debug-символи
+  //   системних бібліотек через мережу (інакше GDB зависає на таймаутах при старті).
+  // set startup-with-shell off — запускає inferior напряму через exec без /bin/sh,
+  //   що прибирає спробу виділити controlling terminal і відповідне попередження.
+  "postCreateCommand": "printf 'set debuginfod enabled off\\nset startup-with-shell off\\n' > ~/.gdbinit",
 
   // host network спрощує SSH/debug сценарії для занять з target-пристроями.
   // SYS_PTRACE і seccomp=unconfined потрібні для стабільної роботи GDB
