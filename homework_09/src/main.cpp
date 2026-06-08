@@ -4,7 +4,8 @@
 #include "Logger.h"
 
 int main() {
-    std::unique_ptr<IConfigLoader> loader = createLoader(LoaderType::FILE, "data/config.json", "data/ammo.json");
+    FileConfigLoaderFactory loaderFactory("data/config.json", "data/ammo.json");
+    std::unique_ptr<IConfigLoader> loader = loaderFactory.create();
     if (!loader->load()) {
         LOG("Failed to load configuration");
         return 1;
@@ -24,20 +25,26 @@ int main() {
     LOG("  Angular speed: "     << cfg.angularSpeed  << " rad/s");
     LOG("  Turn threshold: "    << cfg.turnThreshold << " rad");
 
-    std::unique_ptr<ITargetProvider> provider = createProvider(ProviderType::JSON, "data/targets.json");
+    JsonFileProviderFactory providerFactory("data/targets.json");
+    std::unique_ptr<ITargetProvider> provider = providerFactory.create();
     if (provider->getTargetCount() == 0) {
         LOG("Failed to load targets from data/targets.json");
         return 1;
     }
 
-    SolverType solverType = SolverType::ANALYTICAL;
-    if (cfg.solverType == "table")           solverType = SolverType::TABLE;
-    else if (cfg.solverType != "analytical") LOG("Unknown solver '" << cfg.solverType
-                                                 << "', falling back to analytical");
+    std::unique_ptr<IBallisticSolverFactory> solverFactory;
+    if (cfg.solverType == "table") {
+        solverFactory = std::make_unique<TableSolverFactory>(
+            loader->getConfig(), loader->getAmmoParams(), "data/ballistic_table.txt");
+    } else {
+        if (cfg.solverType != "analytical")
+            LOG("Unknown solver '" << cfg.solverType << "', falling back to analytical");
+        solverFactory = std::make_unique<AnalyticalSolverFactory>(
+            loader->getConfig(), loader->getAmmoParams());
+    }
     LOG("Using solver: " << cfg.solverType);
 
-    std::unique_ptr<IBallisticSolver> solver = createSolver(solverType,
-        loader->getConfig(), loader->getAmmoParams());
+    std::unique_ptr<IBallisticSolver> solver = solverFactory->create();
 
     MissionProcessor mission(std::move(provider), std::move(solver), std::move(loader));
     if (!mission.init()) {
