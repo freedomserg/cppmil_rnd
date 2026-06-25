@@ -38,11 +38,16 @@ jobs:
             # Збираємо .cpp/.hpp файли, що відрізняються від базової гілки.
             # Вендорені single-header бібліотеки (json.hpp) виключаємо — це
             # сторонній код, лінтити його не треба, інакше джоба тоне у warnings.
+            # homework_08/ і homework_09 — написані до впровадження clang-tidy
+            # дисципліни. Виключення
+            # ТИМЧАСОВЕ: прибрати при роботі над homework_10 (до того часу ці
+            # теки вже будуть у main і не потраплятимуть у diff майбутніх PR).
             # `|| true` запобігає падінню grep, коли збігів немає
             # (grep повертає 1 при порожньому результаті, що перервало б скрипт).
             CHANGED=$(git diff --name-only "origin/${BASE_REF:-main}...HEAD" \
               | grep -E '\.(cpp|hpp)$' \
-              | grep -vE '(^|/)json\.hpp$' || true)
+              | grep -vE '(^|/)json\.hpp$' \
+              | grep -vE '(^|/)homework_0[89]/' || true)
 
             if [ -z "$CHANGED" ]; then
               echo "No C++ files changed — skipping clang-tidy."
