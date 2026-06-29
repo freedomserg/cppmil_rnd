@@ -1,0 +1,13 @@
+# Локальний override для homework_10. InheritParentConfig успадковує курсову
+# політику й лише вимикає перевірки, недоречні саме для цього ДЗ:
+#  - magic-numbers: фізичні формули (Кардано, балістика) рясніють константами;
+#  - special-member-functions: інтерфейси мають лише `virtual ~T() = default`;
+#  - macro-usage: Logger.h навмисно реалізований макросами LOG/DEBUG;
+#  - narrowing-conversions: змішування float/int/size_t у формулах і таблиці.
+InheritParentConfig: true
+Checks: >
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-narrowing-conversions,

@@ -13,11 +13,22 @@ HW07_CPP := homework_07/main.cpp
 
 HW07_CMAKE := homework_07/CMakeLists.txt
 
-# Aggregate of all first-party files; append new homeworks here.
-CPP_FILES   := $(HW06_CPP) $(HW07_CPP)
-CMAKE_FILES := $(HW06_CMAKE) $(HW07_CMAKE)
+# homework_08/09 навмисно не додані (legacy, написані до clang-tidy дисципліни).
+# homework_10 написаний clang-tidy-clean; third_party/json.hpp не входить у скоуп.
+HW10_CPP := $(wildcard homework_10/include/*.h) \
+            $(wildcard homework_10/include/*/*.h) \
+            $(wildcard homework_10/src/*.cpp) \
+            $(wildcard homework_10/src/*/*.cpp)
 
-.PHONY: format lint test quality
+HW10_CMAKE := homework_10/CMakeLists.txt
+
+# Aggregate of all first-party files; append new homeworks here.
+CPP_FILES   := $(HW06_CPP) $(HW07_CPP) $(HW10_CPP)
+CMAKE_FILES := $(HW06_CMAKE) $(HW07_CMAKE) $(HW10_CMAKE)
+
+HW10_BIN := $(BUILD_DIR)/homework_10/drone_sim_v4
+
+.PHONY: format lint test quality run-hw10 run-hw10-tsan
 
 # Apply clang-format and cmake-format to all first-party sources.
 format:
@@ -35,3 +46,15 @@ test:
 
 # Format, then lint, then test — run this before every PR.
 quality: format lint test
+
+# Зібрати і запустити homework_10 (3 потоки). simulation.json пишеться у homework_10/.
+run-hw10:
+	cmake --preset debug -DDRONE_SIM_TSAN=OFF
+	cmake --build --preset debug --target drone_sim_v4
+	cd homework_10 && ../$(HW10_BIN)
+
+# Те саме під ThreadSanitizer — перевірка гонок даних (Linux/WSL).
+run-hw10-tsan:
+	cmake --preset debug -DDRONE_SIM_TSAN=ON
+	cmake --build --preset debug --target drone_sim_v4
+	cd homework_10 && TSAN_OPTIONS=halt_on_error=0 ../$(HW10_BIN)
