@@ -16,7 +16,7 @@ private:
     auto loadAmmoParamsArray(const std::string& filename) -> std::vector<AmmoParams>;
 
 public:
-    FileConfigLoader(const std::string& configFile, const std::string& ammoFile);
+    FileConfigLoader(std::string configFile, std::string ammoFile);
 
     auto load() -> bool override;
 

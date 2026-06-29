@@ -5,6 +5,7 @@
 #include "Types.h"
 #include <memory>
 #include <string>
+#include <utility>
 
 class IBallisticSolverFactory {
 public:
@@ -16,8 +17,8 @@ class AnalyticalSolverFactory : public IBallisticSolverFactory {
     DroneConfig cfg_;
     AmmoParams  ammo_;
 public:
-    AnalyticalSolverFactory(const DroneConfig& cfg, const AmmoParams& ammo)
-        : cfg_(cfg), ammo_(ammo) {}
+    AnalyticalSolverFactory(DroneConfig cfg, AmmoParams ammo)
+        : cfg_(std::move(cfg)), ammo_(std::move(ammo)) {}
     auto create() -> std::unique_ptr<IBallisticSolver> override;
 };
 
@@ -26,8 +27,8 @@ class TableSolverFactory : public IBallisticSolverFactory {
     AmmoParams  ammo_;
     std::string tablePath_;
 public:
-    TableSolverFactory(const DroneConfig& cfg, const AmmoParams& ammo, std::string tablePath)
-        : cfg_(cfg), ammo_(ammo), tablePath_(std::move(tablePath)) {}
+    TableSolverFactory(DroneConfig cfg, AmmoParams ammo, std::string tablePath)
+        : cfg_(std::move(cfg)), ammo_(std::move(ammo)), tablePath_(std::move(tablePath)) {}
     auto create() -> std::unique_ptr<IBallisticSolver> override;
 };
 

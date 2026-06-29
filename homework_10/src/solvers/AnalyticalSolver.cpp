@@ -55,10 +55,10 @@ auto AnalyticalSolver::calcAmmoHDistance(
 }
 
 AnalyticalSolver::AnalyticalSolver(const DroneConfig& cfg, const AmmoParams& ammo) {
-    ready_ = calcAmmoDropTime(cfg, ammo, ammoFlightTime_);
-    if (ready_) {
-        hDist_ = calcAmmoHDistance(cfg, ammo, ammoFlightTime_);
-        LOG("Ammo flight time: " << ammoFlightTime_
-            << " s, horizontal distance: " << hDist_ << " m");
-    }
+    float flightTime = 0.0f;
+    if (!calcAmmoDropTime(cfg, ammo, flightTime)) return;
+    float hDist = calcAmmoHDistance(cfg, ammo, flightTime);
+    setBallistics(flightTime, hDist);
+    LOG("Ammo flight time: " << flightTime
+        << " s, horizontal distance: " << hDist << " m");
 }

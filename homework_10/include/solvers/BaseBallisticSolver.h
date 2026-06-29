@@ -7,13 +7,11 @@ struct AmmoParams;
 struct Coord;
 struct Target;
 
-// Спільна геометрія місії + solve(). Нащадки лише заповнюють
-// ammoFlightTime_ та hDist_ у власному конструкторі.
+// Спільна геометрія місії + solve(). Нащадки задають балістику через setBallistics().
 class BaseBallisticSolver : public IBallisticSolver {
 protected:
-    float ammoFlightTime_ = 0.0f;
-    float hDist_          = 0.0f;
-    bool  ready_          = false;
+    // Нащадки задають балістику снаряда (час польоту + горизонтальна дистанція).
+    void setBallistics(float ammoFlightTime, float hDist);
 
     void getIntermediateAndDropPoint(
         const Coord& dronePos, const Coord& targetPos,
@@ -46,4 +44,9 @@ public:
         float& outTotalTime,
         Coord& outPredictedTarget,
         Coord& outAimPoint) -> bool override;
+
+private:
+    float ammoFlightTime_ = 0.0f;
+    float hDist_          = 0.0f;
+    bool  ready_          = false;
 };

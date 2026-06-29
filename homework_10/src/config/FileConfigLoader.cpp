@@ -4,6 +4,7 @@
 #include <cmath>
 #include <fstream>
 #include <numbers>
+#include <utility>
 
 using json = nlohmann::json;
 
@@ -56,8 +57,8 @@ auto FileConfigLoader::loadAmmoParamsArray(const std::string& filename) -> std::
     return v;
 }
 
-FileConfigLoader::FileConfigLoader(const std::string& configFile, const std::string& ammoFile)
-    : configFile_(configFile), ammoFile_(ammoFile) {}
+FileConfigLoader::FileConfigLoader(std::string configFile, std::string ammoFile)
+    : configFile_(std::move(configFile)), ammoFile_(std::move(ammoFile)) {}
 
 auto FileConfigLoader::load() -> bool {
     bool ok = false;

@@ -26,6 +26,10 @@ HW10_CMAKE := homework_10/CMakeLists.txt
 CPP_FILES   := $(HW06_CPP) $(HW07_CPP) $(HW10_CPP)
 CMAKE_FILES := $(HW06_CMAKE) $(HW07_CMAKE) $(HW10_CMAKE)
 
+# clang-tidy запускаємо лише на translation units (.cpp); діагностику в хедерах
+# дає HeaderFilterRegex під час обробки відповідного .cpp — як і в CI.
+LINT_FILES := $(filter %.cpp,$(CPP_FILES))
+
 HW10_BIN := $(BUILD_DIR)/homework_10/drone_sim_v4
 
 .PHONY: format lint test quality run-hw10 run-hw10-tsan
@@ -35,10 +39,12 @@ format:
 	clang-format -i $(CPP_FILES)
 	cmake-format -i $(CMAKE_FILES)
 
-# Run clang-tidy against the debug compile_commands.json.
-# Requires a successful cmake --preset debug run first.
+# Run clang-tidy locally, mirroring CI: configure (генерує compile_commands.json),
+# build (ловить compile-помилки), потім clang-tidy на .cpp. Запускати в devcontainer.
 lint:
-	clang-tidy -p $(BUILD_DIR) $(CPP_FILES)
+	cmake --preset debug
+	cmake --build --preset debug
+	clang-tidy -p $(BUILD_DIR) $(LINT_FILES)
 
 # Run all registered CTest tests.
 test:

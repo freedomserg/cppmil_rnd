@@ -5,7 +5,7 @@
 // Знімок телеметрії + входи планування. Стани лише читають і заповнюють
 // command; інтеграцію виконує DronePhysics.
 struct DroneContext {
-    const DroneConfig& cfg;
+    DroneConfig cfg;
     float acceleration = 0.0f;
 
     Coord pos{};

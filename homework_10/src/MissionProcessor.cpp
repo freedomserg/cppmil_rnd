@@ -20,10 +20,10 @@ constexpr float DROP_RATIO = 0.2f;
 
 MissionProcessor::MissionProcessor(ITargetProvider* provider, DronePhysics* physics,
                                    std::unique_ptr<IBallisticSolver> solver,
-                                   const DroneConfig& cfg, const AmmoParams& ammo)
+                                   DroneConfig cfg, AmmoParams ammo)
     : provider_(provider), physics_(physics), solver_(std::move(solver)),
-      cfg_(cfg), ammo_(ammo),
-      acceleration_(calcAccel(cfg.attackSpeed, cfg.accelPath)),
+      cfg_(std::move(cfg)), ammo_(std::move(ammo)),
+      acceleration_(calcAccel(cfg_.attackSpeed, cfg_.accelPath)),
       state_(std::make_unique<StateStopped>()) {
     steps_.reserve(MAX_STEPS);
 }

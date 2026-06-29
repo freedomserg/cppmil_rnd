@@ -15,7 +15,7 @@ class MissionProcessor {
 public:
     MissionProcessor(ITargetProvider* provider, DronePhysics* physics,
                      std::unique_ptr<IBallisticSolver> solver,
-                     const DroneConfig& cfg, const AmmoParams& ammo);
+                     DroneConfig cfg, AmmoParams ammo);
 
     void run();                         // тіло потоку
     void start();

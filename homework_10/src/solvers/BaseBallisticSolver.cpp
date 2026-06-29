@@ -7,6 +7,12 @@
 constexpr int   NUM_APPROX_STEPS      = 3;
 constexpr float TIME_CHANGE_THRESHOLD = 0.05f;
 
+void BaseBallisticSolver::setBallistics(float ammoFlightTime, float hDist) {
+    ammoFlightTime_ = ammoFlightTime;
+    hDist_          = hDist;
+    ready_          = true;
+}
+
 void BaseBallisticSolver::getIntermediateAndDropPoint(
     const Coord& dronePos, const Coord& targetPos,
     float hDist, float accelPath,
@@ -21,7 +27,6 @@ void BaseBallisticSolver::getIntermediateAndDropPoint(
             local = { targetPos.x - (hDist + accelPath), targetPos.y };
         else
             local = targetPos - (targetPos - local) * ((hDist + accelPath) / dist);
-        dist = calcDistance(local, targetPos);
     }
     outIntermediatePos = local;
     outFirePos         = targetPos - normalize(targetPos - local) * hDist;
@@ -51,7 +56,6 @@ auto BaseBallisticSolver::calcTimeOfFlight(
         totalTime        += accelTimeFromDist(pathToStop, a);
         totalTime        += std::fabs(normalizeAngle(desiredDir - currentDir)) / angularSpeed;
         currentSpeed      = 0.0f;
-        currentDir        = desiredDir;
     }
 
     float dist         = calcDistance(currentPos, targetPos);
