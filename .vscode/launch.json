@@ -165,6 +165,28 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      // Локальний debug стартера ДЗ 10 (multithreading).
+      "name": "Debug homework_10: drone_sim_v4",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_10/drone_sim_v4",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_10",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "description": "Увімкнути pretty-printing для STL типів у GDB.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
     }
   ]
 }
