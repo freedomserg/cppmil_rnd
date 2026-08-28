@@ -22,17 +22,27 @@ HW10_CPP := $(wildcard homework_10/include/*.h) \
 
 HW10_CMAKE := homework_10/CMakeLists.txt
 
+# homework_11 (UART+GPIO автопілот). LibgpiodGpio.cpp виключено з lint/format:
+# при USE_GPIOD=OFF його нема в compile_commands.json, clang-tidy -p впав би.
+HW11_CPP := $(wildcard homework_11/include/*.h) \
+            $(wildcard homework_11/include/*/*.h) \
+            $(filter-out homework_11/src/gpio/LibgpiodGpio.cpp, \
+              $(wildcard homework_11/src/*.cpp) $(wildcard homework_11/src/*/*.cpp))
+
+HW11_CMAKE := homework_11/CMakeLists.txt
+
 # Aggregate of all first-party files; append new homeworks here.
-CPP_FILES   := $(HW06_CPP) $(HW07_CPP) $(HW10_CPP)
-CMAKE_FILES := $(HW06_CMAKE) $(HW07_CMAKE) $(HW10_CMAKE)
+CPP_FILES   := $(HW06_CPP) $(HW07_CPP) $(HW10_CPP) $(HW11_CPP)
+CMAKE_FILES := $(HW06_CMAKE) $(HW07_CMAKE) $(HW10_CMAKE) $(HW11_CMAKE)
 
 # clang-tidy запускаємо лише на translation units (.cpp); діагностику в хедерах
 # дає HeaderFilterRegex під час обробки відповідного .cpp — як і в CI.
 LINT_FILES := $(filter %.cpp,$(CPP_FILES))
 
 HW10_BIN := $(BUILD_DIR)/homework_10/drone_sim_v4
+HW11_BIN := $(BUILD_DIR)/homework_11/drone_autopilot
 
-.PHONY: format lint test quality run-hw10 run-hw10-tsan
+.PHONY: format lint test quality run-hw10 run-hw10-tsan run-hw11
 
 # Apply clang-format and cmake-format to all first-party sources.
 format:
@@ -64,3 +74,10 @@ run-hw10-tsan:
 	cmake --preset debug -DDRONE_SIM_TSAN=ON
 	cmake --build --preset debug --target drone_sim_v4
 	cd homework_10 && TSAN_OPTIONS=halt_on_error=0 ../$(HW10_BIN)
+
+# Зібрати homework_11 (UART+GPIO автопілот) і запустити з дефолтними аргументами.
+# Потрібен запущений чекер + socat/gpio-sim (див. homework_11/scripts/run_sim.sh).
+run-hw11:
+	cmake --preset debug
+	cmake --build --preset debug --target drone_autopilot
+	cd homework_11 && ../$(HW11_BIN)

@@ -187,6 +187,34 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      // Локальний debug стартера ДЗ 11 (UART+GPIO автопілот).
+      // Потрібен запущений чекер + socat/gpio-sim; підстав фактичний --gpiochip.
+      "name": "Debug homework_11: drone_autopilot",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_11/drone_autopilot",
+      "args": [
+        "--uart", "/tmp/ttyA",
+        "--gpiochip", "gpiochip1",
+        "--start-line", "24",
+        "--drop-line", "23"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_11",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "description": "Увімкнути pretty-printing для STL типів у GDB.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
     }
   ]
 }

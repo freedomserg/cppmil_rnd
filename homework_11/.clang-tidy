@@ -1,0 +1,25 @@
+# Локальний override для homework_11. InheritParentConfig успадковує курсову
+# політику й лише вимикає перевірки, недоречні саме для цього ДЗ:
+#  - magic-numbers: фізичні формули (балістика) і протокольні константи;
+#  - special-member-functions: інтерфейси мають лише `virtual ~T() = default`;
+#  - macro-usage: Logger.h навмисно реалізований макросами LOG/DEBUG;
+#  - narrowing-conversions: змішування float/int/size_t у формулах;
+#  - pro-type-vararg: ioctl() для GPIO uAPI — варіативний;
+#  - pro-bounds-*: побайтові UART-буфери, argv[i], out+4 у протоколі;
+#  - pro-type-cstyle-cast / reinterpret-cast: C-шари termios/gpio uAPI;
+#  - pro-type-member-init: zero-init POSIX/uapi структур через `{}`;
+#  - modernize-avoid-c-arrays: uint8_t buf[256], char consumer[].
+InheritParentConfig: true
+Checks: >
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-narrowing-conversions,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-type-cstyle-cast,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-member-init,
+  -modernize-avoid-c-arrays,
